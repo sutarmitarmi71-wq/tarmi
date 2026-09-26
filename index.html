@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Magnet - IPAS Kelas 4 SD</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Fredoka & Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti for rewards -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            red: '#FF4B4B',
+                            blue: '#2B7FFF',
+                            yellow: '#FFC800',
+                            green: '#28C76F',
+                            purple: '#9055FD',
+                            dark: '#2D3748',
+                            light: '#F8FAFC'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        fredoka: ['Fredoka', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F0F4F9;
+            user-select: none;
+        }
+        
+        .font-kids {
+            font-family: 'Fredoka', cursive;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #E2E8F0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94A3B8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748B;
+        }
+
+        /* Magnet Visual Styling */
+        .pole-u {
+            background: linear-gradient(135deg, #FF4B4B, #DC2626);
+            color: white;
+        }
+        .pole-s {
+            background: linear-gradient(135deg, #2B7FFF, #1D4ED8);
+            color: white;
+        }
+
+        /* Floating animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(43, 127, 255, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(255, 75, 75, 0.7); }
+        }
+        .glow-effect {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* Drag and Drop styling */
+        .draggable-item {
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+        .draggable-item:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+
+        /* Hide elements dynamically */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col">
+
+    <!-- TOP NAVBAR -->
+    <header class="bg-white shadow-md sticky top-0 z-50 border-b-4 border-brand-yellow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('beranda')">
+                <div class="w-12 h-12 bg-gradient-to-tr from-brand-red to-brand-blue rounded-2xl flex items-center justify-center text-white text-2xl shadow-md transform hover:rotate-12 transition">
+                    🧲
+                </div>
+                <div>
+                    <h1 class="font-kids text-xl md:text-2xl font-bold text-slate-800 leading-tight">PETUALANGAN MAGNET</h1>
+                    <p class="text-xs text-brand-blue font-semibold hidden sm:block">IPAS Kelas 4 SD • Kurikulum Merdeka</p>
+                </div>
+            </div>
+
+            <!-- Student Profile Badge & Audio Toggle -->
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleAudio()" id="audioBtn" class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition" title="Suara">
+                    <i class="fas fa-volume-up text-lg"></i>
+                </button>
+                <div id="studentBadge" class="hidden md:flex items-center space-x-2 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl">
+                    <div class="w-8 h-8 bg-brand-blue text-white rounded-full flex items-center justify-center font-bold text-sm">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div class="text-xs">
+                        <div id="navStudentName" class="font-bold text-slate-700">Siswa</div>
+                        <div id="navStudentClass" class="text-slate-500">Kelas 4</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN NAVIGATION MENU (RESPONSIVE) -->
+        <nav class="bg-slate-800 text-white overflow-x-auto scrollbar-none">
+            <div class="max-w-7xl mx-auto px-2 flex space-x-1 py-2 text-xs md:text-sm font-semibold whitespace-nowrap">
+                <button onclick="switchTab('beranda')" id="nav-beranda" class="nav-btn px-3 py-2 rounded-lg bg-brand-blue text-white flex items-center space-x-2 transition">
+                    <i class="fas fa-home"></i> <span>Beranda</span>
+                </button>
+                <button onclick="switchTab('materi')" id="nav-materi" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fas fa-book-open"></i> <span>Materi</span>
+                </button>
+                <button onclick="switchTab('uji-benda')" id="nav-uji-benda" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fas fa-search"></i> <span>Uji Benda</span>
+                </button>
+                <button onclick="switchTab('kutub-magnet')" id="nav-kutub-magnet" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fas fa-magnet"></i> <span>Kutub Magnet</span>
+                </button>
+                <button onclick="switchTab('lab-magnet')" id="nav-lab-magnet" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fas fa-flask"></i> <span>Lab Virtual</span>
+                </button>
+                <button onclick="switchTab('permainan')" id="nav-permainan" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fas fa-gamepad text-brand-yellow"></i> <span>Permainan</span>
+                </button>
+                <button onclick="switchTab('latihan')" id="nav-latihan" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fas fa-pencil-alt"></i> <span>Latihan</span>
+                </button>
+                <button onclick="switchTab('kuis')" id="nav-kuis" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fas fa-trophy text-brand-yellow"></i> <span>Kuis</span>
+                </button>
+                <button onclick="switchTab('hasil-belajar')" id="nav-hasil-belajar" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fas fa-chart-bar"></i> <span>Hasil Belajar</span>
+                </button>
+                <button onclick="switchTab('tentang')" id="nav-tentang" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fas fa-info-circle"></i> <span>Tentang</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+
+        <!-- ==================== TAB 1: BERANDA ==================== -->
+        <section id="tab-beranda" class="tab-content active">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Hero & Form -->
+                <div class="lg:col-span-8 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-brand-blue font-bold pointer-events-none">
+                        🧲
+                    </div>
+                    <div>
+                        <span class="inline-block px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold mb-3">
+                            <i class="fas fa-star mr-1"></i> IPAS Kelas 4 SD
+                        </span>
+                        <h2 class="font-kids text-3xl md:text-5xl font-bold text-slate-800 mb-2">
+                            Yuk, Temukan Sifat-Sifat Magnet! 🧲✨
+                        </h2>
+                        <p class="text-slate-600 text-sm md:text-base mb-6">
+                            Selamat datang, Petualang Cilik! Mari kita jelajahi rahasia kekuatan ajaib magnet melalui permainan, percobaan seru, dan kuis interaktif.
+                        </p>
+
+                        <!-- Student Data Input Card -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-6 max-w-md">
+                            <h3 class="font-kids text-lg font-bold text-slate-700 mb-3 flex items-center">
+                                <i class="fas fa-id-card text-brand-blue mr-2"></i> Identitas Petualang
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Siswa:</label>
+                                    <input type="text" id="inputNama" placeholder="Masukkan nama lengkapmu..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-blue text-sm font-medium">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kelas:</label>
+                                    <select id="inputKelas" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-blue text-sm font-medium bg-white">
+                                        <option value="4A">Kelas IV - A</option>
+                                        <option value="4B">Kelas IV - B</option>
+                                        <option value="4C">Kelas IV - C</option>
+                                        <option value="4D">Kelas IV - D</option>
+                                    </select>
+                                </div>
+                                <button onclick="saveStudentProfile()" class="w-full py-2.5 bg-brand-blue hover:bg-blue-600 text-white font-bold rounded-xl transition shadow hover:shadow-md flex items-center justify-center space-x-2">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Simpan Profile</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA Button -->
+                    <div>
+                        <button onclick="switchTab('materi')" class="px-8 py-4 bg-gradient-to-r from-brand-red to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-kids text-xl font-bold rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition flex items-center justify-center space-x-3 w-full sm:w-auto">
+                            <span>🚀 MULAI PETUALANGAN</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress Dashboard & Quick Stats -->
+                <div class="lg:col-span-4 space-y-6">
+                    <!-- Progress Box -->
+                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                        <h3 class="font-kids text-xl font-bold text-slate-800 mb-4 flex items-center justify-between">
+                            <span>Progress Belajar</span>
+                            <i class="fas fa-chart-line text-brand-green"></i>
+                        </h3>
+                        
+                        <!-- Progress Bar -->
+                        <div class="mb-4">
+                            <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                                <span>Kemajuan Total</span>
+                                <span id="overallProgressText">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden p-0.5">
+                                <div id="overallProgressBar" class="bg-gradient-to-r from-brand-yellow to-brand-green h-full rounded-full transition-all duration-500" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Mission Checklist -->
+                        <div class="space-y-2 text-xs font-medium text-slate-700">
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50" id="misi-materi">
+                                <span class="flex items-center"><i class="far fa-circle text-slate-400 mr-2"></i> Baca Materi</span>
+                                <span class="text-slate-400 font-bold">0/6</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50" id="misi-uji">
+                                <span class="flex items-center"><i class="far fa-circle text-slate-400 mr-2"></i> Uji Benda</span>
+                                <span class="text-slate-400 font-bold">Belum</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50" id="misi-kutub">
+                                <span class="flex items-center"><i class="far fa-circle text-slate-400 mr-2"></i> Simulasi Kutub</span>
+                                <span class="text-slate-400 font-bold">Belum</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50" id="misi-lab">
+                                <span class="flex items-center"><i class="far fa-circle text-slate-400 mr-2"></i> Percobaan Lab</span>
+                                <span class="text-slate-400 font-bold">Belum</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50" id="misi-kuis">
+                                <span class="flex items-center"><i class="far fa-circle text-slate-400 mr-2"></i> Selesaikan Kuis</span>
+                                <span class="text-slate-400 font-bold">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Badges Preview -->
+                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                        <h3 class="font-kids text-xl font-bold text-slate-800 mb-3">Lencana Petualang 🎖️</h3>
+                        <div class="grid grid-cols-3 gap-3 text-center">
+                            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center">
+                                <span class="text-3xl opacity-30 grayscale" id="badge-1">🧲</span>
+                                <span class="text-[10px] font-bold text-slate-600 mt-1">Penyelidik</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center">
+                                <span class="text-3xl opacity-30 grayscale" id="badge-2">🧪</span>
+                                <span class="text-[10px] font-bold text-slate-600 mt-1">Ilmuwan</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center">
+                                <span class="text-3xl opacity-30 grayscale" id="badge-3">🏆</span>
+                                <span class="text-[10px] font-bold text-slate-600 mt-1">Master</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: MATERI ==================== -->
+        <section id="tab-materi" class="tab-content">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
+                <!-- Section Header -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 mb-6 border-b border-slate-100 gap-4">
+                    <div>
+                        <span class="text-xs font-bold text-brand-blue uppercase tracking-wider">Modul Pembelajaran</span>
+                        <h2 class="font-kids text-3xl font-bold text-slate-800">📚 Rahasia Sifat-Sifat Magnet</h2>
+                    </div>
+                    <!-- Sub-materi Tabs -->
+                    <div class="flex overflow-x-auto space-x-2 py-1 scrollbar-none text-xs font-semibold">
+                        <button onclick="showMateriSub(1)" id="mat-btn-1" class="px-3 py-2 rounded-xl bg-brand-blue text-white whitespace-nowrap">1. Pengertian</button>
+                        <button onclick="showMateriSub(2)" id="mat-btn-2" class="px-3 py-2 rounded-xl bg-slate-100 text-slate-600 whitespace-nowrap">2. Benda Magnetis</button>
+                        <button onclick="showMateriSub(3)" id="mat-btn-3" class="px-3 py-2 rounded-xl bg-slate-100 text-slate-600 whitespace-nowrap">3. Kutub Magnet</button>
+                        <button onclick="showMateriSub(4)" id="mat-btn-4" class="px-3 py-2 rounded-xl bg-slate-100 text-slate-600 whitespace-nowrap">4. Sifat Kutub</button>
+                        <button onclick="showMateriSub(5)" id="mat-btn-5" class="px-3 py-2 rounded-xl bg-slate-100 text-slate-600 whitespace-nowrap">5. Gaya Tembus</button>
+                        <button onclick="showMateriSub(6)" id="mat-btn-6" class="px-3 py-2 rounded-xl bg-slate-100 text-slate-600 whitespace-nowrap">6. Manfaat</button>
+                    </div>
+                </div>
+
+                <!-- SUB MATERI CONTENT -->
+                <!-- Sub 1: Apa itu Magnet -->
+                <div id="materi-sub-1" class="materi-card space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <span class="px-3 py-1 bg-red-100 text-brand-red rounded-full text-xs font-bold">Materi 1</span>
+                            <h3 class="font-kids text-2xl font-bold text-slate-800 mt-2 mb-4">Apa Itu Magnet?</h3>
+                            <p class="text-slate-600 leading-relaxed mb-4">
+                                <strong class="text-slate-800">Magnet</strong> adalah suatu benda yang memiliki kemampuan untuk **menarik benda-benda tertentu** di sekitarnya yang terbuat dari bahan logam (seperti besi atau baja).
+                            </p>
+                            <p class="text-slate-600 leading-relaxed">
+                                Kekuatan magnet untuk menarik benda dinamakan <span class="bg-yellow-100 px-2 py-0.5 rounded font-bold text-slate-800">Gaya Magnet</span>. Gaya magnet ini termasuk jenis *gaya tak sentuh*, artinya magnet bisa menarik benda tanpa perlu menyentuhnya langsung dari jarak tertentu!
+                            </p>
+                        </div>
+                        <!-- Mini Demo Animation -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-3xl p-6 text-center">
+                            <h4 class="font-kids font-bold text-slate-700 mb-4">Uji Demo Sederhana: Klik Magnet!</h4>
+                            <div class="flex items-center justify-around h-36 relative overflow-hidden bg-white rounded-2xl border border-slate-200 p-4">
+                                <!-- Magnet -->
+                                <div id="demoMagnet" onclick="triggerDemoMagnet()" class="cursor-pointer hover:scale-105 transition transform">
+                                    <div class="w-16 h-28 rounded-lg flex flex-col font-bold text-white text-xs shadow-md">
+                                        <div class="h-1/2 pole-u flex items-center justify-center rounded-t-lg">U</div>
+                                        <div class="h-1/2 pole-s flex items-center justify-center rounded-b-lg">S</div>
+                                    </div>
+                                </div>
+                                <!-- Target Objects -->
+                                <div id="demoObjectClip" class="transition-all duration-500 flex flex-col items-center">
+                                    <span class="text-4xl">📎</span>
+                                    <span class="text-[10px] font-bold text-slate-500">Klip Besi</span>
+                                </div>
+                                <div id="demoObjectWood" class="transition-all duration-500 flex flex-col items-center">
+                                    <span class="text-4xl">✏️</span>
+                                    <span class="text-[10px] font-bold text-slate-500">Pensil Kayu</span>
+                                </div>
+                            </div>
+                            <p id="demoResultText" class="text-xs font-bold text-brand-blue mt-3">Klik magnet di atas untuk menguji ketertarikannya!</p>
+                        </div>
+                    </div>
+
+                    <!-- Mini Checkup -->
+                    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                        <h4 class="font-bold text-amber-900 text-sm mb-2">❓ Kuis Singkat:</h4>
+                        <p class="text-xs text-amber-800 mb-3">Apakah semua benda di dunia ini dapat ditarik oleh magnet?</p>
+                        <div class="flex space-x-3">
+                            <button onclick="checkMiniQuiz(1, false)" class="px-4 py-2 bg-white hover:bg-amber-100 border border-amber-300 text-amber-900 rounded-xl text-xs font-bold transition">A. Ya, semua benda</button>
+                            <button onclick="checkMiniQuiz(1, true)" class="px-4 py-2 bg-white hover:bg-amber-100 border border-amber-300 text-amber-900 rounded-xl text-xs font-bold transition">B. Tidak, hanya benda tertentu</button>
+                        </div>
+                        <p id="miniQuizFeedback1" class="text-xs font-bold mt-2 hidden"></p>
+                    </div>
+                </div>
+
+                <!-- Sub 2: Benda Magnetis vs Non-Magnetis -->
+                <div id="materi-sub-2" class="materi-card space-y-6 hidden">
+                    <div>
+                        <span class="px-3 py-1 bg-blue-100 text-brand-blue rounded-full text-xs font-bold">Materi 2</span>
+                        <h3 class="font-kids text-2xl font-bold text-slate-800 mt-2 mb-2">Benda Magnetis & Non-Magnetis</h3>
+                        <p class="text-slate-600 text-sm">Berdasarkan kemampuannya ditarik oleh magnet, benda dikelompokkan menjadi dua kelompok utama:</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Card Magnetis -->
+                        <div class="bg-green-50 border border-green-200 rounded-2xl p-5">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <div class="w-10 h-10 bg-green-500 text-white rounded-xl flex items-center justify-center font-bold text-xl">🧲</div>
+                                <h4 class="font-kids text-lg font-bold text-green-900">1. Benda Magnetis</h4>
+                            </div>
+                            <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+                                Benda yang **dapat ditarik** oleh magnet dengan kuat. Benda ini biasanya mengandung bahan logam seperti **besi, baja, atau nikel**.
+                            </p>
+                            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                                <div class="bg-white p-2 rounded-xl border border-green-100">
+                                    <div class="text-2xl">📎</div>
+                                    <div class="font-bold text-slate-700 mt-1">Klip Kertas</div>
+                                </div>
+                                <div class="bg-white p-2 rounded-xl border border-green-100">
+                                    <div class="text-2xl">📌</div>
+                                    <div class="font-bold text-slate-700 mt-1">Paku & Jarum</div>
+                                </div>
+                                <div class="bg-white p-2 rounded-xl border border-green-100">
+                                    <div class="text-2xl">✂️</div>
+                                    <div class="font-bold text-slate-700 mt-1">Gunting Besi</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Non-Magnetis -->
+                        <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <div class="w-10 h-10 bg-red-500 text-white rounded-xl flex items-center justify-center font-bold text-xl">🚫</div>
+                                <h4 class="font-kids text-lg font-bold text-red-900">2. Benda Non-Magnetis</h4>
+                            </div>
+                            <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+                                Benda yang **tidak dapat ditarik** oleh magnet. Benda ini terbuat dari bahan kayu, plastik, karet, kertas, kaca, atau logam bukan besi.
+                            </p>
+                            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                                <div class="bg-white p-2 rounded-xl border border-red-100">
+                                    <div class="text-2xl">✏️</div>
+                                    <div class="font-bold text-slate-700 mt-1">Pensil Kayu</div>
+                                </div>
+                                <div class="bg-white p-2 rounded-xl border border-red-100">
+                                    <div class="text-2xl">🧼</div>
+                                    <div class="font-bold text-slate-700 mt-1">Penghapus</div>
+                                </div>
+                                <div class="bg-white p-2 rounded-xl border border-red-100">
+                                    <div class="text-2xl">🍾</div>
+                                    <div class="font-bold text-slate-700 mt-1">Botol Plastik</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub 3: Kutub Magnet -->
+                <div id="materi-sub-3" class="materi-card space-y-6 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <span class="px-3 py-1 bg-purple-100 text-brand-purple rounded-full text-xs font-bold">Materi 3</span>
+                            <h3 class="font-kids text-2xl font-bold text-slate-800 mt-2 mb-3">Dua Kutub Magnet</h3>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-3">
+                                Setiap magnet pasti memiliki **dua ujung** yang dinamakan **Kutub Magnet**. Pada ujung-ujung inilah gaya tarik magnet bekerja paling kuat!
+                            </p>
+                            <ul class="space-y-2 text-xs font-semibold text-slate-700 mb-4">
+                                <li class="flex items-center space-x-2">
+                                    <span class="w-6 h-6 rounded-lg pole-u flex items-center justify-center text-white text-xs font-bold">U</span>
+                                    <span><strong>Kutub Utara (North)</strong> — Biasanya diberi warna Merah / huruf 'U' atau 'N'.</span>
+                                </li>
+                                <li class="flex items-center space-x-2">
+                                    <span class="w-6 h-6 rounded-lg pole-s flex items-center justify-center text-white text-xs font-bold">S</span>
+                                    <span><strong>Kutub Selatan (South)</strong> — Biasanya diberi warna Biru / huruf 'S'.</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 text-center">
+                            <h4 class="font-kids font-bold text-slate-700 mb-3">Bentuk Magnet Batang</h4>
+                            <div class="w-64 h-20 mx-auto rounded-2xl flex overflow-hidden shadow-lg border-2 border-slate-300">
+                                <div class="w-1/2 pole-u flex items-center justify-center font-kids text-2xl font-bold">
+                                    UTARA (U)
+                                </div>
+                                <div class="w-1/2 pole-s flex items-center justify-center font-kids text-2xl font-bold">
+                                    SELATAN (S)
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-3 italic">"Kekuatan paling besar ada di kedua ujung magnet!"</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub 4: Sifat Interaksi Kutub -->
+                <div id="materi-sub-4" class="materi-card space-y-6 hidden">
+                    <div>
+                        <span class="px-3 py-1 bg-yellow-100 text-amber-800 rounded-full text-xs font-bold">Materi 4</span>
+                        <h3 class="font-kids text-2xl font-bold text-slate-800 mt-2 mb-2">Sifat Interaksi Kutub Magnet</h3>
+                        <p class="text-slate-600 text-sm">Apa yang terjadi jika dua magnet didekatkan satu sama lain?</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl">
+                            <h4 class="font-kids text-lg font-bold text-blue-900 mb-2">1. Kutub Tidak Senama (Beda) 👉 Tarik-Menarik</h4>
+                            <p class="text-xs text-slate-600 mb-4">
+                                Jika kutub **Utara (U)** didekatkan dengan kutub **Selatan (S)**, kedua magnet akan **saling menempel (tarik-menarik)**.
+                            </p>
+                            <div class="flex items-center justify-center space-x-2 py-3 bg-white rounded-xl border border-blue-100">
+                                <div class="w-20 h-8 rounded border flex text-xs font-bold">
+                                    <div class="w-1/2 pole-s flex items-center justify-center">S</div>
+                                    <div class="w-1/2 pole-u flex items-center justify-center">U</div>
+                                </div>
+                                <span class="text-lg font-bold text-green-600">➡️ ⬅️</span>
+                                <div class="w-20 h-8 rounded border flex text-xs font-bold">
+                                    <div class="w-1/2 pole-s flex items-center justify-center">S</div>
+                                    <div class="w-1/2 pole-u flex items-center justify-center">U</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-red-50 border border-red-200 p-5 rounded-2xl">
+                            <h4 class="font-kids text-lg font-bold text-red-900 mb-2">2. Kutub Senama (Sama) 👉 Tolak-Menolak</h4>
+                            <p class="text-xs text-slate-600 mb-4">
+                                Jika kutub **Utara (U)** didekatkan dengan **Utara (U)**, atau **Selatan (S)** dengan **Selatan (S)**, magnet akan **saling mendorong (tolak-menolak)**.
+                            </p>
+                            <div class="flex items-center justify-center space-x-2 py-3 bg-white rounded-xl border border-red-100">
+                                <div class="w-20 h-8 rounded border flex text-xs font-bold">
+                                    <div class="w-1/2 pole-s flex items-center justify-center">S</div>
+                                    <div class="w-1/2 pole-u flex items-center justify-center">U</div>
+                                </div>
+                                <span class="text-lg font-bold text-red-600">⬅️ ➡️</span>
+                                <div class="w-20 h-8 rounded border flex text-xs font-bold">
+                                    <div class="w-1/2 pole-u flex items-center justify-center">U</div>
+                                    <div class="w-1/2 pole-s flex items-center justify-center">S</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub 5: Gaya Magnet Menembus Penghalang -->
+                <div id="materi-sub-5" class="materi-card space-y-6 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold">Materi 5</span>
+                            <h3 class="font-kids text-2xl font-bold text-slate-800 mt-2 mb-3">Dapat Menembus Penghalang</h3>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-3">
+                                Gaya magnet tetap dapat bekerja menarik benda magnetis meskipun terhalang oleh benda tipis seperti **kertas, plastik, kaca, atau papan kayu tipis**!
+                            </p>
+                            <p class="text-slate-600 text-sm leading-relaxed">
+                                Semakin tipis penghalangnya, maka gaya tarik magnet akan terasa **semakin kuat**. Sebaliknya, jika penghalang terlalu tebal, gaya magnet akan melemah.
+                            </p>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 text-center">
+                            <div class="text-5xl mb-2">📄🧲📎</div>
+                            <h4 class="font-kids font-bold text-slate-700 text-sm">Percobaan Kertas & Klip</h4>
+                            <p class="text-xs text-slate-500 mt-1">Klip kertas di atas meja kertas dapat bergerak ikut bergeser saat magnet di bawah meja digerakkan!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub 6: Manfaat Magnet -->
+                <div id="materi-sub-6" class="materi-card space-y-6 hidden">
+                    <div>
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-bold">Materi 6</span>
+                        <h3 class="font-kids text-2xl font-bold text-slate-800 mt-2 mb-2">Magnet Dalam Kehidupan Sehari-hari</h3>
+                        <p class="text-slate-600 text-sm">Tanpa kita sadari, magnet ada di mana-mana di sekitar kita!</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                            <div class="text-4xl mb-2">🧭</div>
+                            <h4 class="font-bold text-xs text-slate-800">Kompas Penunjuk Arah</h4>
+                            <p class="text-[10px] text-slate-500 mt-1">Jarum magnet selalu menunjuk ke arah Utara & Selatan.</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                            <div class="text-4xl mb-2">🧊</div>
+                            <h4 class="font-bold text-xs text-slate-800">Pintu & Hiasan Kulkas</h4>
+                            <p class="text-[10px] text-slate-500 mt-1">Membuat pintu kulkas tertutup rapat secara otomatis.</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                            <div class="text-4xl mb-2">🪛</div>
+                            <h4 class="font-bold text-xs text-slate-800">Ujung Obeng</h4>
+                            <p class="text-[10px] text-slate-500 mt-1">Memudahkan mengambil dan menahan sekrup besi kecil.</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                            <div class="text-4xl mb-2">🚄</div>
+                            <h4 class="font-bold text-xs text-slate-800">Kereta Maglev</h4>
+                            <p class="text-[10px] text-slate-500 mt-1">Kereta cepat yang melayang menggunakan gaya magnet!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Navigation Buttons inside Materi -->
+                <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center">
+                    <button id="prevMatBtn" onclick="navigateMateri(-1)" class="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs hover:bg-slate-200 transition opacity-50 cursor-not-allowed">
+                        <i class="fas fa-chevron-left mr-1"></i> Sebelumnya
+                    </button>
+                    <span id="materiProgressText" class="text-xs font-bold text-slate-500">Materi 1 dari 6</span>
+                    <button id="nextMatBtn" onclick="navigateMateri(1)" class="px-4 py-2 bg-brand-blue text-white font-bold rounded-xl text-xs hover:bg-blue-600 transition">
+                        Selanjutnya <i class="fas fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: UJI BENDA ==================== -->
+        <section id="tab-uji-benda" class="tab-content">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
+                <div class="text-center max-w-2xl mx-auto mb-8">
+                    <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold">Simulasi Interaktif</span>
+                    <h2 class="font-kids text-3xl font-bold text-slate-800 mt-2">🔍 Stasiun Pengujian Benda</h2>
+                    <p class="text-slate-600 text-sm mt-1">
+                        Klik atau seret benda di keranjang ke magnet di tengah untuk membuktikan apakah benda tersebut magnetis atau non-magnetis!
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    <!-- Left: Objects Tray -->
+                    <div class="lg:col-span-5 bg-slate-50 border border-slate-200 rounded-3xl p-5">
+                        <h3 class="font-kids text-lg font-bold text-slate-700 mb-4 flex items-center justify-between">
+                            <span>📦 Keranjang Benda Uji</span>
+                            <span class="text-xs font-normal text-slate-500">Klik benda!</span>
+                        </h3>
+                        <div id="objectsBasket" class="grid grid-cols-3 gap-3">
+                            <!-- Items inserted dynamically by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Middle: Magnet Testing Area -->
+                    <div class="lg:col-span-7 bg-blue-50/60 border-2 border-dashed border-blue-200 rounded-3xl p-8 text-center relative flex flex-col items-center justify-center min-h-[320px]">
+                        <!-- Horseshoe Magnet Graphic -->
+                        <div class="relative mb-6">
+                            <div class="w-40 h-40 border-[24px] border-slate-300 rounded-t-full border-b-0 flex justify-between relative shadow-inner">
+                                <div class="w-8 h-12 bg-red-500 text-white font-bold text-sm flex items-center justify-center absolute -bottom-12 -left-6 rounded-b-lg shadow">U</div>
+                                <div class="w-8 h-12 bg-blue-500 text-white font-bold text-sm flex items-center justify-center absolute -bottom-12 -right-6 rounded-b-lg shadow">S</div>
+                            </div>
+                        </div>
+
+                        <!-- Active Testing Slot -->
+                        <div id="testerSlot" class="w-24 h-24 bg-white border-2 border-slate-300 rounded-2xl flex flex-col items-center justify-center shadow-md my-2 transition-all">
+                            <span class="text-xs text-slate-400 font-semibold text-center px-2">Pilih Benda</span>
+                        </div>
+
+                        <p id="testResultFeedback" class="font-kids text-lg font-bold text-slate-700 mt-4 h-8">
+                            Ayo pilih benda untuk diuji!
+                        </p>
+
+                        <!-- Reset Test Button -->
+                        <button onclick="resetObjectTest()" class="mt-4 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">
+                            <i class="fas fa-undo mr-1"></i> Uji Ulang Semua
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Testing Results Table -->
+                <div class="mt-8 bg-slate-50 rounded-2xl p-5 border border-slate-200">
+                    <h3 class="font-kids text-md font-bold text-slate-800 mb-3">📊 Hasil Catatan Pengujianku:</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-green-100/70 border border-green-200 rounded-xl p-3">
+                            <h4 class="font-bold text-green-900 text-xs mb-2">✅ Benda Magnetis (Dapat Ditarik)</h4>
+                            <div id="magneticResultsList" class="flex flex-wrap gap-1 text-xs text-green-800 italic">
+                                Belum ada data...
+                            </div>
+                        </div>
+                        <div class="bg-red-100/70 border border-red-200 rounded-xl p-3">
+                            <h4 class="font-bold text-red-900 text-xs mb-2">❌ Benda Non-Magnetis (Tidak Ditarik)</h4>
+                            <div id="nonMagneticResultsList" class="flex flex-wrap gap-1 text-xs text-red-800 italic">
+                                Belum ada data...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: KUTUB MAGNET ==================== -->
+        <section id="tab-kutub-magnet" class="tab-content">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
+                <div class="text-center max-w-2xl mx-auto mb-6">
+                    <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-bold">Simulasi Interaksi</span>
+                    <h2 class="font-kids text-3xl font-bold text-slate-800 mt-2">🧲 Lab Interaksi Kutub Magnet</h2>
+                    <p class="text-slate-600 text-sm mt-1">
+                        Putar arah kutub magnet B dan geser mendekat untuk mengamati sifat interaksi kutub senama atau tidak senama!
+                    </p>
+                </div>
+
+                <div class="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden min-h-[380px] flex flex-col justify-between shadow-2xl">
+                    <!-- Status Header -->
+                    <div class="flex justify-between items-center z-10">
+                        <div class="bg-slate-800/80 backdrop-blur px-4 py-2 rounded-xl border border-slate-700">
+                            <span class="text-xs text-slate-400 block">Status Interaksi:</span>
+                            <span id="poleInteractionStatus" class="font-kids text-lg font-bold text-brand-yellow">Kutub Belum Dekat</span>
+                        </div>
+                        <button onclick="toggleMagnetOrientation('B')" class="px-4 py-2 bg-brand-blue hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition shadow flex items-center space-x-2">
+                            <i class="fas fa-sync-alt"></i> <span>Putar Magnet B</span>
+                        </button>
+                    </div>
+
+                    <!-- Interactive Magnets Field Container -->
+                    <div class="relative h-48 my-6 flex items-center justify-center space-x-8 z-10">
+                        <!-- Magnet A (Fixed Left) -->
+                        <div id="magnetA" class="w-48 h-20 rounded-2xl flex overflow-hidden shadow-2xl border-2 border-white/20 transition-all duration-300">
+                            <div id="magA-left" class="w-1/2 pole-u flex flex-col items-center justify-center font-kids text-xl font-bold">
+                                <span>UTARA</span>
+                                <span class="text-xs opacity-75">(U)</span>
+                            </div>
+                            <div id="magA-right" class="w-1/2 pole-s flex flex-col items-center justify-center font-kids text-xl font-bold">
+                                <span>SELATAN</span>
+                                <span class="text-xs opacity-75">(S)</span>
+                            </div>
+                        </div>
+
+                        <!-- Force Arrows Indicator -->
+                        <div id="forceVectors" class="w-24 text-center text-3xl font-bold transition-all duration-300 text-slate-500">
+                            ↔️
+                        </div>
+
+                        <!-- Magnet B (Movable Right) -->
+                        <div id="magnetB" class="w-48 h-20 rounded-2xl flex overflow-hidden shadow-2xl border-2 border-white/20 transition-all duration-300">
+                            <div id="magB-left" class="w-1/2 pole-u flex flex-col items-center justify-center font-kids text-xl font-bold">
+                                <span>UTARA</span>
+                                <span class="text-xs opacity-75">(U)</span>
+                            </div>
+                            <div id="magB-right" class="w-1/2 pole-s flex flex-col items-center justify-center font-kids text-xl font-bold">
+                                <span>SELATAN</span>
+                                <span class="text-xs opacity-75">(S)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slider Control -->
+                    <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 z-10 max-w-md mx-auto w-full">
+                        <label class="block text-xs font-semibold text-slate-300 mb-2 text-center">
+                            Dekatkan Magnet (Geser Slider):
+                        </label>
+                        <input type="range" id="distanceSlider" min="0" max="100" value="0" oninput="updatePoleSimulation()" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-yellow">
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-semibold">
+                            <span>Jauh (100cm)</span>
+                            <span>Mendekat</span>
+                            <span>Menempel (0cm)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Callout -->
+                <div class="mt-6 bg-purple-50 border border-purple-200 rounded-2xl p-4 flex items-start space-x-3">
+                    <span class="text-2xl">💡</span>
+                    <div class="text-xs text-purple-900 leading-relaxed">
+                        <strong>Kesimpulan Penting:</strong>
+                        <ul class="list-disc list-inside mt-1 space-y-1">
+                            <li>Kutub <strong>tidak senama (U-S / S-U)</strong> didekatkan → <span class="font-bold text-green-700">TARIK-MENARIK</span></li>
+                            <li>Kutub <strong>senama (U-U / S-S)</strong> didekatkan → <span class="font-bold text-red-700">TOLAK-MENOLAK</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 5: LAB MAGNET ==================== -->
+        <section id="tab-lab-magnet" class="tab-content">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-100 gap-4">
+                    <div>
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Laboratorium Virtual</span>
+                        <h2 class="font-kids text-3xl font-bold text-slate-800 mt-1">🧪 Percobaan Magnet Virtual</h2>
+                    </div>
+                    <!-- Mode Switcher -->
+                    <div class="flex space-x-2 bg-slate-100 p-1 rounded-2xl text-xs font-bold">
+                        <button onclick="switchLabExp(1)" id="labExpBtn1" class="px-4 py-2 rounded-xl bg-white text-slate-800 shadow">Eksperimen 1: Daya Tembus</button>
+                        <button onclick="switchLabExp(2)" id="labExpBtn2" class="px-4 py-2 rounded-xl text-slate-500 hover:text-slate-800">Eksperimen 2: Garis Gaya</button>
+                    </div>
+                </div>
+
+                <!-- EXPERIMENT 1: Penetration Power -->
+                <div id="expSection1" class="space-y-6">
+                    <p class="text-slate-600 text-sm">
+                        Uji apakah gaya magnet dapat menembus benda penghalang seperti kertas, plastik, atau papan kayu!
+                    </p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                        <!-- Settings -->
+                        <div class="lg:col-span-4 bg-slate-50 border border-slate-200 p-5 rounded-3xl space-y-4">
+                            <h3 class="font-kids font-bold text-slate-700 text-sm">Pengaturan Benda Penghalang:</h3>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Jenis Penghalang:</label>
+                                <select id="barrierType" onchange="updateLabPenetration()" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold">
+                                    <option value="kertas">📄 Selembar Kertas (Sangat Tipis)</option>
+                                    <option value="plastik">📁 Muka Plastik Tipis</option>
+                                    <option value="kayu">🪵 Papan Kayu Tipis</option>
+                                    <option value="buku">📚 Buku Tebal (Penghalang Tebal)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Experiment Interactive Stage -->
+                        <div class="lg:col-span-8 bg-amber-50/50 border-2 border-amber-200 rounded-3xl p-6 text-center relative min-h-[300px] flex flex-col justify-between">
+                            <!-- Paper Clip Top Zone -->
+                            <div class="h-20 flex items-center justify-center relative">
+                                <div id="labClip" class="text-5xl transition-all duration-300 transform">
+                                    📎
+                                </div>
+                            </div>
+
+                            <!-- Barrier Graphic line -->
+                            <div id="barrierVisual" class="h-6 w-full bg-amber-200 border-y-2 border-amber-400 flex items-center justify-center font-bold text-xs text-amber-900 my-2">
+                                Selembar Kertas
+                            </div>
+
+                            <!-- Magnet Bottom Zone -->
+                            <div class="h-24 flex items-center justify-center relative">
+                                <div id="labMagnetUnder" onclick="moveLabMagnet()" class="cursor-pointer w-32 h-14 rounded-xl flex overflow-hidden shadow-lg border-2 border-slate-400 hover:scale-105 transition transform">
+                                    <div class="w-1/2 pole-u flex items-center justify-center font-bold text-white text-xs">U</div>
+                                    <div class="w-1/2 pole-s flex items-center justify-center font-bold text-white text-xs">S</div>
+                                </div>
+                            </div>
+
+                            <p id="labExp1ResultText" class="text-xs font-bold text-slate-700 mt-2">
+                                Klik magnet di bawah untuk menggesernya!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EXPERIMENT 2: Iron Filings Field Pattern -->
+                <div id="expSection2" class="space-y-6 hidden">
+                    <p class="text-slate-600 text-sm">
+                        Taburkan serbuk besi di atas kertas yang diberi magnet di bawahnya untuk melihat **Garis-Garis Gaya Magnet**!
+                    </p>
+
+                    <div class="bg-slate-900 rounded-3xl p-8 text-center text-white min-h-[320px] flex flex-col items-center justify-center relative">
+                        <!-- Canvas for Iron Filings simulation -->
+                        <canvas id="filingsCanvas" width="500" height="220" class="bg-slate-800 rounded-2xl border border-slate-700 shadow-inner mb-4 cursor-pointer"></canvas>
+                        
+                        <div class="flex space-x-3">
+                            <button onclick="spreadIronFilings()" class="px-5 py-2.5 bg-brand-blue hover:bg-blue-600 text-white font-bold text-xs rounded-xl transition shadow">
+                                ✨ Tabur Serbuk Besi
+                            </button>
+                            <button onclick="clearIronFilings()" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs rounded-xl transition">
+                                🧹 Bersihkan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 6: PERMAINAN ==================== -->
+        <section id="tab-permainan" class="tab-content">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-slate-100 gap-2">
+                    <div>
+                        <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold">Mini Game</span>
+                        <h2 class="font-kids text-3xl font-bold text-slate-800 mt-1">🎮 Pembersih Sampah Magnetis</h2>
+                    </div>
+                    <!-- Game Score Board -->
+                    <div class="flex space-x-3 text-xs font-bold">
+                        <div class="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-amber-900">
+                            Skor: <span id="gameScoreText" class="text-base text-brand-red ml-1">0</span>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl text-blue-900">
+                            Waktu: <span id="gameTimerText" class="text-base text-brand-blue ml-1">30</span>s
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Container -->
+                <div class="bg-gradient-to-b from-sky-200 to-indigo-100 rounded-3xl p-6 relative overflow-hidden min-h-[380px] flex flex-col justify-between border-2 border-sky-300">
+                    <!-- Instruction Banner -->
+                    <div id="gameStartOverlay" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-6 text-center text-white">
+                        <span class="text-6xl mb-3">🧲🧹</span>
+                        <h3 class="font-kids text-3xl font-bold mb-2">Misi Tangkap Sampah Besi!</h3>
+                        <p class="text-xs text-slate-300 max-w-md mb-6 leading-relaxed">
+                            Klik hanya benda-benda yang <strong class="text-brand-yellow">MAGNETIS (terbuat dari besi/baja)</strong> untuk membersihkan sungai! Jangan klik sampah non-magnetis (daun, botol, plastik).
+                        </p>
+                        <button onclick="startGame()" class="px-8 py-3.5 bg-brand-yellow hover:bg-yellow-400 text-slate-900 font-kids text-xl font-bold rounded-2xl shadow-lg transform hover:scale-105 transition">
+                            ▶️ MULAI BERMAIN!
+                        </button>
+                    </div>
+
+                    <!-- Floating Game Items Canvas Area -->
+                    <div id="gamePlayArea" class="relative flex-grow min-h-[280px]">
+                        <!-- Items rendered dynamically by JS -->
+                    </div>
+
+                    <div class="text-center text-xs text-slate-500 font-semibold mt-2">
+                        Petunjuk: Klik benda yang terbuat dari besi/baja!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 7: LATIHAN ==================== -->
+        <section id="tab-latihan" class="tab-content">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
+                <div class="text-center max-w-2xl mx-auto mb-8">
+                    <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-bold">Latihan Mandiri</span>
+                    <h2 class="font-kids text-3xl font-bold text-slate-800 mt-1">✏️ Ajang Latihan Pemahaman</h2>
+                    <p class="text-slate-600 text-sm mt-1">
+                        Klasifikasikan setiap benda berikut ke dalam kotak kategori yang tepat!
+                    </p>
+                </div>
+
+                <!-- Interactive Categorization Drag & Drop / Tap -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <!-- Source Item -->
+                    <div class="md:col-span-12 bg-slate-50 border border-slate-200 p-4 rounded-2xl text-center">
+                        <h3 class="font-bold text-xs text-slate-600 uppercase mb-3">Pilih Kategori Untuk Benda Di Bawah Ini:</h3>
+                        <div id="activePracticeCard" class="bg-white border-2 border-brand-blue p-4 rounded-2xl inline-flex flex-col items-center justify-center min-w-[160px] shadow-md transition-all">
+                            <span id="pracItemEmoji" class="text-5xl mb-1">📌</span>
+                            <span id="pracItemName" class="font-kids text-lg font-bold text-slate-800">Jarum Pentul</span>
+                        </div>
+                    </div>
+
+                    <!-- Category Drop Targets -->
+                    <div class="md:col-span-6 bg-green-50 border-2 border-green-300 rounded-3xl p-6 text-center hover:bg-green-100 transition cursor-pointer" onclick="answerPractice('magnetis')">
+                        <span class="text-4xl">🧲</span>
+                        <h4 class="font-kids text-xl font-bold text-green-900 mt-2">BENDA MAGNETIS</h4>
+                        <p class="text-xs text-green-700 mt-1">Dapat ditarik oleh magnet (Besi/Baja)</p>
+                    </div>
+
+                    <div class="md:col-span-6 bg-red-50 border-2 border-red-300 rounded-3xl p-6 text-center hover:bg-red-100 transition cursor-pointer" onclick="answerPractice('non-magnetis')">
+                        <span class="text-4xl">🚫</span>
+                        <h4 class="font-kids text-xl font-bold text-red-900 mt-2">BENDA NON-MAGNETIS</h4>
+                        <p class="text-xs text-red-700 mt-1">Tidak dapat ditarik oleh magnet (Kayu, Plastik, Karet)</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <span id="practiceScoreBadge" class="inline-block px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">
+                        Kemajuan: 0 / 5 Selesai
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 8: KUIS ==================== -->
+        <section id="tab-kuis" class="tab-content">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
+                <!-- Quiz Header -->
+                <div class="flex justify-between items-center pb-6 mb-6 border-b border-slate-100">
+                    <div>
+                        <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold">Evaluasi Pemahaman</span>
+                        <h2 class="font-kids text-3xl font-bold text-slate-800 mt-1">🏆 Kuis Petualangan Magnet</h2>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 px-4 py-2 rounded-2xl text-amber-900 font-bold text-xs flex items-center space-x-2">
+                        <i class="fas fa-question-circle text-brand-yellow text-lg"></i>
+                        <span id="quizNumTracker">Soal 1 dari 10</span>
+                    </div>
+                </div>
+
+                <!-- Quiz Main Area -->
+                <div id="quizContainer">
+                    <!-- Dynamic Quiz Card -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-3xl p-6 md:p-8">
+                        <h3 id="quizQuestionText" class="font-kids text-xl md:text-2xl font-bold text-slate-800 mb-4">
+                            Memuat pertanyaan...
+                        </h3>
+
+                        <!-- Optional Quiz Visual/Image -->
+                        <div id="quizImageContainer" class="mb-6 text-center hidden">
+                            <div id="quizEmojiVisual" class="text-6xl p-4 bg-white rounded-2xl inline-block border border-slate-200 shadow-sm">
+                                🧲
+                            </div>
+                        </div>
+
+                        <!-- Options List -->
+                        <div id="quizOptionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Options rendered dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Quiz Navigation / Feedback -->
+                    <div class="mt-6 flex justify-between items-center">
+                        <div id="quizFeedbackText" class="font-bold text-sm h-6"></div>
+                        <button id="quizNextBtn" onclick="nextQuizQuestion()" class="px-6 py-3 bg-brand-blue hover:bg-blue-600 text-white font-bold rounded-xl text-xs transition hidden">
+                            Soal Berikutnya <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 9: HASIL BELAJAR ==================== -->
+        <section id="tab-hasil-belajar" class="tab-content">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
+                <div class="text-center max-w-xl mx-auto mb-8">
+                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Kartu Hasil Belajar</span>
+                    <h2 class="font-kids text-3xl font-bold text-slate-800 mt-1">📊 Rapor Petualangan Siswa</h2>
+                </div>
+
+                <!-- Certificate / Report Card Visual -->
+                <div class="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 border-4 border-amber-300 rounded-3xl p-8 max-w-2xl mx-auto shadow-xl relative overflow-hidden">
+                    <div class="text-center space-y-4">
+                        <div class="text-5xl">🎖️</div>
+                        <h3 class="font-kids text-2xl font-bold text-amber-900 uppercase tracking-wide">Sertifikat Petualang Cilik</h3>
+                        <p class="text-xs text-amber-800">Diberikan kepada:</p>
+                        
+                        <div id="reportStudentName" class="font-kids text-3xl font-bold text-brand-blue border-b-2 border-amber-400 inline-block px-6 py-1">
+                            Nama Siswa
+                        </div>
+                        <p id="reportStudentClass" class="text-xs font-semibold text-slate-600">Kelas IV</p>
+
+                        <div class="grid grid-cols-2 gap-4 my-6 text-left max-w-md mx-auto bg-white/80 backdrop-blur rounded-2xl p-4 border border-amber-200">
+                            <div>
+                                <span class="text-[10px] text-slate-500 font-bold block">SKOR KUIS</span>
+                                <span id="reportQuizScore" class="font-kids text-2xl font-bold text-brand-red">0 / 100</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-500 font-bold block">KATEGORI PRESTASI</span>
+                                <span id="reportCategory" class="font-kids text-lg font-bold text-green-600">Petualang Cilik</span>
+                            </div>
+                        </div>
+
+                        <!-- Earned Badges Row -->
+                        <div>
+                            <span class="text-xs font-bold text-amber-900 block mb-2">Lencana yang Diraih:</span>
+                            <div class="flex justify-center space-x-4 text-3xl">
+                                <span title="Penyelidik Magnet" id="repBadge1" class="grayscale opacity-30">🧲</span>
+                                <span title="Ilmuwan Cilik" id="repBadge2" class="grayscale opacity-30">🧪</span>
+                                <span title="Master Magnet" id="repBadge3" class="grayscale opacity-30">🏆</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-8 flex justify-center space-x-4">
+                    <button onclick="window.print()" class="px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition flex items-center space-x-2">
+                        <i class="fas fa-print"></i> <span>Cetak Rapor</span>
+                    </button>
+                    <button onclick="resetAllProgress()" class="px-6 py-3 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl text-xs transition flex items-center space-x-2">
+                        <i class="fas fa-trash-alt"></i> <span>Reset Kemajuan</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 10: TENTANG ==================== -->
+        <section id="tab-tentang" class="tab-content">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
+                <div class="max-w-3xl mx-auto space-y-6">
+                    <div>
+                        <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold">Informasi Kurikulum</span>
+                        <h2 class="font-kids text-3xl font-bold text-slate-800 mt-2">ℹ️ Petunjuk & Panduan Guru</h2>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 space-y-3">
+                        <h3 class="font-kids font-bold text-blue-900 text-lg">📘 Capaian Pembelajaran (CP) - IPAS Kelas 4 SD</h3>
+                        <p class="text-xs text-slate-700 leading-relaxed">
+                            Peserta didik mengidentifikasi proses perubahan wujud zat dan perubahan bentuk energi dalam kehidupan sehari-hari. Peserta didik mengidentifikasi sumber dan bentuk energi serta menjelaskan proses perubahan bentuk energi dalam kehidupan sehari-hari (termasuk gaya dan magnet).
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
+                        <h3 class="font-kids font-bold text-slate-800 text-lg">🎯 Tujuan Pembelajaran (TP)</h3>
+                        <ul class="list-disc list-inside text-xs text-slate-600 space-y-1.5">
+                            <li>Siswa dapat menjelaskan pengertian magnet dan gaya magnet dengan bahasa sederhana.</li>
+                            <li>Siswa mampu membedakan benda magnetis dan non-magnetis melalui pengamatan langsung.</li>
+                            <li>Siswa dapat membuktikan bahwa magnet memiliki dua kutub (Utara dan Selatan).</li>
+                            <li>Siswa dapat mendemonstrasikan sifat interaksi dua kutub magnet (tarik-menarik dan tolak-menolak).</li>
+                            <li>Siswa mampu menyimpulkan bahwa gaya magnet dapat menembus penghalang tipis.</li>
+                        </ul>
+                    </div>
+
+                    <div class="text-xs text-slate-500 text-center pt-4 border-t border-slate-100">
+                        Petualangan Magnet • Media Pembelajaran Interaktif IPAS Kelas 4 SD
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        /* STATE MANAGEMENT */
+        let state = {
+            studentName: 'Petualang',
+            studentClass: '4A',
+            materiProgress: [false, false, false, false, false, false],
+            testedObjectsCount: 0,
+            hasSimulatedPoles: false,
+            hasSimulatedLab: false,
+            gameScore: 0,
+            practiceScore: 0,
+            quizScore: 0,
+            quizFinished: false,
+            currentQuizIndex: 0
+        };
+
+        /* AUDIO SYNTHESIZER (Web Audio API) */
+        let audioEnabled = true;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new AudioContext();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.08);
+                } else if (type === 'snap') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.15);
+                } else if (type === 'repel') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.2);
+                } else if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                }
+            } catch (e) {
+                console.log("Audio not allowed yet");
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('audioBtn');
+            btn.innerHTML = audioEnabled ? '<i class="fas fa-volume-up text-lg"></i>' : '<i class="fas fa-volume-mute text-lg text-red-500"></i>';
+        }
+
+        /* NAVIGATION & TAB SWITCHING */
+        function switchTab(tabId) {
+            playSound('click');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('bg-brand-blue', 'text-white');
+                el.classList.add('hover:bg-slate-700', 'text-slate-300');
+            });
+
+            const activeTab = document.getElementById(`tab-${tabId}`);
+            if (activeTab) activeTab.classList.add('active');
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.add('bg-brand-blue', 'text-white');
+                activeNav.classList.remove('hover:bg-slate-700', 'text-slate-300');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* STUDENT PROFILE */
+        function saveStudentProfile() {
+            const nama = document.getElementById('inputNama').value.trim();
+            const kelas = document.getElementById('inputKelas').value;
+            
+            if (nama) {
+                state.studentName = nama;
+                state.studentClass = kelas;
+                localStorage.setItem('petualangan_magnet_profile', JSON.stringify({ nama, kelas }));
+                updateProfileUI();
+                playSound('success');
+                alert(`Profile ${nama} berhasil disimpan! Selamat berpetualang!`);
+            } else {
+                alert('Silakan masukkan namamu terlebih dahulu!');
+            }
+        }
+
+        function updateProfileUI() {
+            document.getElementById('navStudentName').innerText = state.studentName;
+            document.getElementById('navStudentClass').innerText = `Kelas ${state.studentClass}`;
+            document.getElementById('studentBadge').classList.remove('hidden');
+            document.getElementById('reportStudentName').innerText = state.studentName;
+            document.getElementById('reportStudentClass').innerText = `Kelas ${state.studentClass}`;
+        }
+
+        /* MATERI CONTROLLER */
+        let currentMateriSub = 1;
+        function showMateriSub(index) {
+            playSound('click');
+            currentMateriSub = index;
+            state.materiProgress[index - 1] = true;
+
+            for (let i = 1; i <= 6; i++) {
+                const card = document.getElementById(`materi-sub-${i}`);
+                const btn = document.getElementById(`mat-btn-${i}`);
+                if (card) card.classList.add('hidden');
+                if (btn) {
+                    btn.classList.remove('bg-brand-blue', 'text-white');
+                    btn.classList.add('bg-slate-100', 'text-slate-600');
+                }
+            }
+
+            const activeCard = document.getElementById(`materi-sub-${index}`);
+            const activeBtn = document.getElementById(`mat-btn-${index}`);
+            if (activeCard) activeCard.classList.remove('hidden');
+            if (activeBtn) {
+                activeBtn.classList.add('bg-brand-blue', 'text-white');
+                activeBtn.classList.remove('bg-slate-100', 'text-slate-600');
+            }
+
+            // Update footer prev/next
+            document.getElementById('materiProgressText').innerText = `Materi ${index} dari 6`;
+            
+            updateOverallProgress();
+        }
+
+        function navigateMateri(dir) {
+            let target = currentMateriSub + dir;
+            if (target >= 1 && target <= 6) {
+                showMateriSub(target);
+            }
+        }
+
+        function triggerDemoMagnet() {
+            playSound('snap');
+            const clip = document.getElementById('demoObjectClip');
+            const wood = document.getElementById('demoObjectWood');
+            const text = document.getElementById('demoResultText');
+
+            clip.style.transform = 'translateX(-70px) scale(1.1)';
+            wood.style.transform = 'none';
+            text.innerHTML = '✨ <strong class="text-green-600">Klip Kertas besi langsung ditarik!</strong> Pensil kayu tidak bergerak.';
+        }
+
+        function checkMiniQuiz(id, isCorrect) {
+            const fb = document.getElementById(`miniQuizFeedback${id}`);
+            fb.classList.remove('hidden');
+            if (isCorrect) {
+                playSound('success');
+                fb.className = 'text-xs font-bold mt-2 text-green-600';
+                fb.innerText = '✅ Hebat! Benar sekali, hanya benda tertentu (logam besi/baja) yang bisa ditarik magnet.';
+            } else {
+                playSound('repel');
+                fb.className = 'text-xs font-bold mt-2 text-red-600';
+                fb.innerText = '❌ Kurang tepat. Coba lagi!';
+            }
+        }
+
+        /* UJI BENDA DATA & LOGIC */
+        const testableObjects = [
+            { id: 1, name: 'Paku Besi', emoji: '📌', magnetic: true, desc: 'Besi - Sangat Kuat' },
+            { id: 2, name: 'Pensil Kayu', emoji: '✏️', magnetic: false, desc: 'Kayu - Tidak ditarik' },
+            { id: 3, name: 'Klip Kertas', emoji: '📎', magnetic: true, desc: 'Baja - Sangat Kuat' },
+            { id: 4, name: 'Penghapus', emoji: '🧼', magnetic: false, desc: 'Karet - Tidak ditarik' },
+            { id: 5, name: 'Jarum Pentul', emoji: '🪡', magnetic: true, desc: 'Besi - Sangat Kuat' },
+            { id: 6, name: 'Botol Plastik', emoji: '🍾', magnetic: false, desc: 'Plastik - Tidak ditarik' },
+            { id: 7, name: 'Koin Tembaga', emoji: '🪙', magnetic: false, desc: 'Tembaga - Tidak ditarik' },
+            { id: 8, name: 'Gunting Besi', emoji: '✂️', magnetic: true, desc: 'Besi - Ditarik' },
+            { id: 9, name: 'Daun Kering', emoji: '🍂', magnetic: false, desc: 'Organik - Tidak ditarik' }
+        ];
+
+        let testedResults = { magnetic: [], nonMagnetic: [] };
+
+        function initObjectBasket() {
+            const container = document.getElementById('objectsBasket');
+            container.innerHTML = '';
+
+            testableObjects.forEach(obj => {
+                const btn = document.createElement('button');
+                btn.className = 'p-3 bg-white border border-slate-200 hover:border-brand-blue rounded-2xl flex flex-col items-center justify-center text-center shadow-sm hover:shadow transition transform hover:scale-105';
+                btn.onclick = () => testObject(obj);
+                btn.innerHTML = `
+                    <span class="text-3xl mb-1">${obj.emoji}</span>
+                    <span class="text-[11px] font-bold text-slate-700">${obj.name}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function testObject(obj) {
+            const slot = document.getElementById('testerSlot');
+            const feedback = document.getElementById('testResultFeedback');
+
+            slot.innerHTML = `
+                <span class="text-4xl mb-1 animate-bounce">${obj.emoji}</span>
+                <span class="text-[10px] font-bold text-slate-700">${obj.name}</span>
+            `;
+
+            if (obj.magnetic) {
+                playSound('snap');
+                slot.className = 'w-24 h-24 bg-green-100 border-2 border-green-500 rounded-2xl flex flex-col items-center justify-center shadow-md my-2 transition-all transform -translate-y-4';
+                feedback.className = 'font-kids text-lg font-bold text-green-600 mt-4 h-8';
+                feedback.innerText = `✅ Benda Magnetis! ${obj.name} TERATARIK MAGNET!`;
+
+                if (!testedResults.magnetic.includes(obj.name)) {
+                    testedResults.magnetic.push(obj.name);
+                }
+            } else {
+                playSound('repel');
+                slot.className = 'w-24 h-24 bg-red-100 border-2 border-red-400 rounded-2xl flex flex-col items-center justify-center shadow-md my-2 transition-all transform translate-y-4';
+                feedback.className = 'font-kids text-lg font-bold text-red-600 mt-4 h-8';
+                feedback.innerText = `❌ Benda Non-Magnetis! ${obj.name} TIDAK DITARIK!`;
+
+                if (!testedResults.nonMagnetic.includes(obj.name)) {
+                    testedResults.nonMagnetic.push(obj.name);
+                }
+            }
+
+            state.testedObjectsCount++;
+            updateTestResultsTable();
+            updateOverallProgress();
+        }
+
+        function updateTestResultsTable() {
+            const magList = document.getElementById('magneticResultsList');
+            const nonMagList = document.getElementById('nonMagneticResultsList');
+
+            if (testedResults.magnetic.length > 0) {
+                magList.innerHTML = testedResults.magnetic.map(n => `<span class="px-2 py-1 bg-green-200 rounded-lg text-green-900 font-bold">${n}</span>`).join(' ');
+            }
+            if (testedResults.nonMagnetic.length > 0) {
+                nonMagList.innerHTML = testedResults.nonMagnetic.map(n => `<span class="px-2 py-1 bg-red-200 rounded-lg text-red-900 font-bold">${n}</span>`).join(' ');
+            }
+        }
+
+        function resetObjectTest() {
+            testedResults = { magnetic: [], nonMagnetic: [] };
+            document.getElementById('magneticResultsList').innerText = 'Belum ada data...';
+            document.getElementById('nonMagneticResultsList').innerText = 'Belum ada data...';
+            document.getElementById('testerSlot').innerHTML = '<span class="text-xs text-slate-400 font-semibold text-center px-2">Pilih Benda</span>';
+            document.getElementById('testerSlot').className = 'w-24 h-24 bg-white border-2 border-slate-300 rounded-2xl flex flex-col items-center justify-center shadow-md my-2 transition-all';
+            document.getElementById('testResultFeedback').innerText = 'Ayo pilih benda untuk diuji!';
+        }
+
+        /* KUTUB MAGNET SIMULATOR */
+        let magBOrientation = 'US'; // 'US' or 'SU'
+
+        function toggleMagnetOrientation(magId) {
+            playSound('click');
+            if (magId === 'B') {
+                magBOrientation = magBOrientation === 'US' ? 'SU' : 'US';
+                const left = document.getElementById('magB-left');
+                const right = document.getElementById('magB-right');
+
+                if (magBOrientation === 'US') {
+                    left.className = 'w-1/2 pole-u flex flex-col items-center justify-center font-kids text-xl font-bold';
+                    left.innerHTML = '<span>UTARA</span><span class="text-xs opacity-75">(U)</span>';
+                    right.className = 'w-1/2 pole-s flex flex-col items-center justify-center font-kids text-xl font-bold';
+                    right.innerHTML = '<span>SELATAN</span><span class="text-xs opacity-75">(S)</span>';
+                } else {
+                    left.className = 'w-1/2 pole-s flex flex-col items-center justify-center font-kids text-xl font-bold';
+                    left.innerHTML = '<span>SELATAN</span><span class="text-xs opacity-75">(S)</span>';
+                    right.className = 'w-1/2 pole-u flex flex-col items-center justify-center font-kids text-xl font-bold';
+                    right.innerHTML = '<span>UTARA</span><span class="text-xs opacity-75">(U)</span>';
+                }
+            }
+            updatePoleSimulation();
+        }
+
+        function updatePoleSimulation() {
+            const val = parseInt(document.getElementById('distanceSlider').value); // 0 (far) to 100 (close)
+            const magB = document.getElementById('magnetB');
+            const status = document.getElementById('poleInteractionStatus');
+            const vectors = document.getElementById('forceVectors');
+
+            // Magnet A right pole is 'S'
+            // Magnet B left pole depends on magBOrientation ('U' if US, 'S' if SU)
+            const magARightPole = 'S';
+            const magBLeftPole = magBOrientation === 'US' ? 'U' : 'S';
+
+            const isAttract = magARightPole !== magBLeftPole; // S vs U -> attract
+
+            // Move magnet B closer as slider increases
+            const translateX = -(val * 0.8);
+            magB.style.transform = `translateX(${translateX}px)`;
+
+            state.hasSimulatedPoles = true;
+            updateOverallProgress();
+
+            if (val > 70) {
+                if (isAttract) {
+                    playSound('snap');
+                    status.className = 'font-kids text-lg font-bold text-green-400';
+                    status.innerText = '💖 TARIK-MENARIK! (Kutub Beda U-S)';
+                    vectors.innerText = '➡️ ⬅️';
+                    vectors.className = 'w-24 text-center text-3xl font-bold text-green-400 animate-pulse';
+                } else {
+                    playSound('repel');
+                    status.className = 'font-kids text-lg font-bold text-red-400';
+                    status.innerText = '💥 TOLAK-MENOLAK! (Kutub Sama S-S)';
+                    vectors.innerText = '⬅️ ➡️';
+                    vectors.className = 'w-24 text-center text-3xl font-bold text-red-400 animate-bounce';
+                }
+            } else {
+                status.className = 'font-kids text-lg font-bold text-brand-yellow';
+                status.innerText = 'Kutub Belum Cukup Dekat';
+                vectors.innerText = '↔️';
+                vectors.className = 'w-24 text-center text-3xl font-bold text-slate-500';
+            }
+        }
+
+        /* LAB VIRTUAL LOGIC */
+        function switchLabExp(expNum) {
+            playSound('click');
+            const exp1 = document.getElementById('expSection1');
+            const exp2 = document.getElementById('expSection2');
+            const btn1 = document.getElementById('labExpBtn1');
+            const btn2 = document.getElementById('labExpBtn2');
+
+            if (expNum === 1) {
+                exp1.classList.remove('hidden');
+                exp2.classList.add('hidden');
+                btn1.className = 'px-4 py-2 rounded-xl bg-white text-slate-800 shadow';
+                btn2.className = 'px-4 py-2 rounded-xl text-slate-500 hover:text-slate-800';
+            } else {
+                exp1.classList.add('hidden');
+                exp2.classList.remove('hidden');
+                btn2.className = 'px-4 py-2 rounded-xl bg-white text-slate-800 shadow';
+                btn1.className = 'px-4 py-2 rounded-xl text-slate-500 hover:text-slate-800';
+                initFilingsCanvas();
+            }
+            state.hasSimulatedLab = true;
+            updateOverallProgress();
+        }
+
+        let isMagnetShifted = false;
+        function updateLabPenetration() {
+            const type = document.getElementById('barrierType').value;
+            const visual = document.getElementById('barrierVisual');
+
+            if (type === 'kertas') {
+                visual.innerText = '📄 Selembar Kertas (Sangat Tipis)';
+                visual.className = 'h-6 w-full bg-amber-200 border-y-2 border-amber-400 flex items-center justify-center font-bold text-xs text-amber-900 my-2';
+            } else if (type === 'plastik') {
+                visual.innerText = '📁 Muka Plastik Tipis';
+                visual.className = 'h-8 w-full bg-blue-200/80 border-y-2 border-blue-400 flex items-center justify-center font-bold text-xs text-blue-900 my-2';
+            } else if (type === 'kayu') {
+                visual.innerText = '🪵 Papan Kayu Tipis';
+                visual.className = 'h-12 w-full bg-amber-800 text-amber-100 flex items-center justify-center font-bold text-xs my-2';
+            } else if (type === 'buku') {
+                visual.innerText = '📚 Buku Tebal (Penghalang Sangat Tebal)';
+                visual.className = 'h-20 w-full bg-slate-700 text-white flex items-center justify-center font-bold text-xs my-2';
+            }
+        }
+
+        function moveLabMagnet() {
+            playSound('snap');
+            const clip = document.getElementById('labClip');
+            const mag = document.getElementById('labMagnetUnder');
+            const type = document.getElementById('barrierType').value;
+            const feedback = document.getElementById('labExp1ResultText');
+
+            isMagnetShifted = !isMagnetShifted;
+
+            if (isMagnetShifted) {
+                mag.style.transform = 'translateX(100px)';
+                if (type !== 'buku') {
+                    clip.style.transform = 'translateX(100px)';
+                    feedback.innerHTML = '✅ <strong class="text-green-600">Gaya Magnet Menembus!</strong> Klip ikut bergeser.';
+                } else {
+                    clip.style.transform = 'none';
+                    feedback.innerHTML = '❌ <strong class="text-red-600">Buku Terlalu Tebal!</strong> Gaya magnet tidak cukup kuat menembus.';
+                }
+            } else {
+                mag.style.transform = 'none';
+                clip.style.transform = 'none';
+            }
+        }
+
+        /* Iron Filings Canvas */
+        function initFilingsCanvas() {
+            const canvas = document.getElementById('filingsCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw magnet shape in center
+            ctx.fillStyle = '#FF4B4B';
+            ctx.fillRect(175, 90, 75, 40);
+            ctx.fillStyle = '#2B7FFF';
+            ctx.fillRect(250, 90, 75, 40);
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 16px Fredoka';
+            ctx.fillText('U', 205, 115);
+            ctx.fillText('S', 280, 115);
+        }
+
+        function spreadIronFilings() {
+            playSound('snap');
+            const canvas = document.getElementById('filingsCanvas');
+            const ctx = canvas.getContext('2d');
+            initFilingsCanvas();
+
+            // Generate field line particle representation
+            for (let i = 0; i < 800; i++) {
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+
+                // Pull particles slightly towards magnetic poles (x: 175 and x: 325)
+                ctx.fillStyle = 'rgba(200, 210, 225, 0.8)';
+                ctx.fillRect(x, y, 2, 2);
+            }
+        }
+
+        function clearIronFilings() {
+            playSound('click');
+            initFilingsCanvas();
+        }
+
+        /* MINI GAME LOGIC */
+        let gameTimer = null;
+        let gameTimeLeft = 30;
+        const gameItems = [
+            { name: 'Paku Besi', emoji: '📌', magnetic: true },
+            { name: 'Klip Besi', emoji: '📎', magnetic: true },
+            { name: 'Gunting', emoji: '✂️', magnetic: true },
+            { name: 'Kunci Besi', emoji: '🔑', magnetic: true },
+            { name: 'Daun', emoji: '🍃', magnetic: false },
+            { name: 'Botol Plastik', emoji: '🍾', magnetic: false },
+            { name: 'Pensil Kayu', emoji: '✏️', magnetic: false }
+        ];
+
+        function startGame() {
+            playSound('success');
+            document.getElementById('gameStartOverlay').classList.add('hidden');
+            state.gameScore = 0;
+            gameTimeLeft = 30;
+            document.getElementById('gameScoreText').innerText = state.gameScore;
+            document.getElementById('gameTimerText').innerText = gameTimeLeft;
+
+            if (gameTimer) clearInterval(gameTimer);
+            gameTimer = setInterval(() => {
+                gameTimeLeft--;
+                document.getElementById('gameTimerText').innerText = gameTimeLeft;
+                if (gameTimeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            spawnGameItems();
+        }
+
+        function spawnGameItems() {
+            const area = document.getElementById('gamePlayArea');
+            area.innerHTML = '';
+
+            for (let i = 0; i < 7; i++) {
+                const item = gameItems[Math.floor(Math.random() * gameItems.length)];
+                const btn = document.createElement('button');
+                btn.className = 'absolute text-4xl p-2 hover:scale-125 transition transform animate-float cursor-pointer';
+                btn.style.left = `${Math.random() * 80 + 5}%`;
+                btn.style.top = `${Math.random() * 70 + 10}%`;
+                btn.innerHTML = item.emoji;
+
+                btn.onclick = () => {
+                    if (item.magnetic) {
+                        playSound('snap');
+                        state.gameScore += 10;
+                        btn.remove();
+                    } else {
+                        playSound('repel');
+                        state.gameScore = Math.max(0, state.gameScore - 5);
+                    }
+                    document.getElementById('gameScoreText').innerText = state.gameScore;
+                };
+
+                area.appendChild(btn);
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameTimer);
+            playSound('success');
+            confetti({ particleCount: 80, spread: 60 });
+
+            const overlay = document.getElementById('gameStartOverlay');
+            overlay.classList.remove('hidden');
+            overlay.innerHTML = `
+                <span class="text-6xl mb-3">🎉🏆</span>
+                <h3 class="font-kids text-3xl font-bold mb-2">Permainan Selesai!</h3>
+                <p class="text-lg text-brand-yellow font-bold mb-4">Total Skor Kamu: ${state.gameScore} Poin</p>
+                <button onclick="startGame()" class="px-8 py-3 bg-brand-yellow text-slate-900 font-kids font-bold rounded-xl shadow hover:bg-yellow-400 transition">
+                    🔄 Main Lagi
+                </button>
+            `;
+            updateOverallProgress();
+        }
+
+        /* LATIHAN MANDIRI LOGIC */
+        const practiceItems = [
+            { name: 'Jarum Pentul', emoji: '📌', type: 'magnetis' },
+            { name: 'Penggaris Plastik', emoji: '📏', type: 'non-magnetis' },
+            { name: 'Klip Kertas Besi', emoji: '📎', type: 'magnetis' },
+            { name: 'Penghapus Karet', emoji: '🧼', type: 'non-magnetis' },
+            { name: 'Paku Besi', emoji: '🔩', type: 'magnetis' }
+        ];
+
+        let currentPracticeIndex = 0;
+
+        function answerPractice(chosenType) {
+            const item = practiceItems[currentPracticeIndex];
+            if (chosenType === item.type) {
+                playSound('success');
+                state.practiceScore += 20;
+            } else {
+                playSound('repel');
+            }
+
+            currentPracticeIndex++;
+            document.getElementById('practiceScoreBadge').innerText = `Kemajuan: ${currentPracticeIndex} / ${practiceItems.length} Selesai`;
+
+            if (currentPracticeIndex < practiceItems.length) {
+                const next = practiceItems[currentPracticeIndex];
+                document.getElementById('pracItemEmoji').innerText = next.emoji;
+                document.getElementById('pracItemName').innerText = next.name;
+            } else {
+                confetti({ particleCount: 50 });
+                document.getElementById('activePracticeCard').innerHTML = `
+                    <span class="text-5xl mb-2">🎉</span>
+                    <span class="font-kids text-lg font-bold text-green-600">Latihan Selesai!</span>
+                `;
+            }
+            updateOverallProgress();
+        }
+
+        /* KUIS DATA & ENGINE */
+        const quizQuestions = [
+            {
+                q: "Magnet adalah benda yang memiliki kemampuan untuk menarik...",
+                emoji: "🧲",
+                options: ["Semua benda di bumi", "Benda tertentu dari besi/baja", "Hanya benda yang berwarna merah", "Benda dari karet dan kayu"],
+                correct: 1
+            },
+            {
+                q: "Manakah di antara benda berikut yang TERMASUK benda magnetis?",
+                emoji: "🔍",
+                options: ["Pensil kayu", "Botol plastik", "Klip kertas besi", "Penghapus karet"],
+                correct: 2
+            },
+            {
+                q: "Magnet memiliki dua kutub utama, yaitu...",
+                emoji: "🧩",
+                options: ["Kutub Barat dan Timur", "Kutub Utara dan Selatan", "Kutub Atas dan Bawah", "Kutub Positif dan Netral"],
+                correct: 1
+            },
+            {
+                q: "Jika Kutub Utara (U) didekatkan dengan Kutub Selatan (S), reaksi yang terjadi adalah...",
+                emoji: "🧲",
+                options: ["Tolak-menolak", "Tarik-menarik", "Tidak terjadi apa-apa", "Magnet akan patah"],
+                correct: 1
+            },
+            {
+                q: "Dua magnet yang memiliki kutub senama (Utara dengan Utara) jika didekatkan akan...",
+                emoji: "💥",
+                options: ["Saling menempel kuat", "Tolak-menolak", "Saling menyerap", "Mengeluarkan air"],
+                correct: 1
+            },
+            {
+                q: "Gaya magnet tetap dapat bekerja meskipun terhalang selembar kertas karena...",
+                emoji: "📄",
+                options: ["Magnet memiliki cahaya ajaib", "Gaya magnet dapat menembus penghalang tipis", "Kertas terbuat dari besi", "Kertas menarik magnet"],
+                correct: 1
+            },
+            {
+                q: "Alat navigasi penunjuk arah angin/petunjuk jalan yang menggunakan magnet adalah...",
+                emoji: "🧭",
+                options: ["Kulkas", "Kompas", "Obeng", "Penggaris"],
+                correct: 1
+            },
+            {
+                q: "Benda berikut ini TIDAK dapat ditarik magnet, KECUALI...",
+                emoji: "❓",
+                options: ["Daun kering", "Paku besi", "Kertas HVS", "Cangkir kaca"],
+                correct: 1
+            },
+            {
+                q: "Kutub magnet yang gaya tariknya paling kuat terletak pada bagian...",
+                emoji: "📍",
+                options: ["Tengah magnet", "Kedua ujung magnet", "Atas magnet saja", "Bawah magnet saja"],
+                correct: 1
+            },
+            {
+                q: "Kereta modern berkecepatan tinggi yang dapat melayang menggunakan magnet disebut...",
+                emoji: "🚄",
+                options: ["Kereta Maglev", "Kereta Uap", "Kereta Delman", "Kereta Listrik Biasa"],
+                correct: 0
+            }
+        ];
+
+        let currentQuizIdx = 0;
+        let selectedQuizOption = null;
+
+        function loadQuizQuestion() {
+            const q = quizQuestions[currentQuizIdx];
+            document.getElementById('quizNumTracker').innerText = `Soal ${currentQuizIdx + 1} dari ${quizQuestions.length}`;
+            document.getElementById('quizQuestionText').innerText = q.q;
+
+            const imgContainer = document.getElementById('quizImageContainer');
+            const emojiVisual = document.getElementById('quizEmojiVisual');
+            if (q.emoji) {
+                imgContainer.classList.remove('hidden');
+                emojiVisual.innerText = q.emoji;
+            } else {
+                imgContainer.classList.add('hidden');
+            }
+
+            const optsContainer = document.getElementById('quizOptionsContainer');
+            optsContainer.innerHTML = '';
+            selectedQuizOption = null;
+
+            document.getElementById('quizNextBtn').classList.add('hidden');
+            document.getElementById('quizFeedbackText').innerText = '';
+
+            q.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'p-4 bg-white border-2 border-slate-200 hover:border-brand-blue rounded-2xl text-left font-semibold text-slate-700 text-sm transition flex items-center space-x-3 hover:bg-blue-50/50';
+                btn.onclick = () => selectQuizAnswer(idx, btn);
+                btn.innerHTML = `
+                    <span class="w-8 h-8 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center font-bold text-slate-600 text-xs">${String.fromCharCode(65 + idx)}</span>
+                    <span>${optText}</span>
+                `;
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function selectQuizAnswer(idx, btnEl) {
+            const q = quizQuestions[currentQuizIdx];
+            const allBtns = document.getElementById('quizOptionsContainer').children;
+
+            for (let b of allBtns) {
+                b.disabled = true;
+                b.classList.remove('border-brand-blue', 'bg-blue-50/50');
+            }
+
+            if (idx === q.correct) {
+                playSound('success');
+                btnEl.className = 'p-4 bg-green-100 border-2 border-green-500 rounded-2xl text-left font-bold text-green-900 text-sm transition flex items-center space-x-3';
+                document.getElementById('quizFeedbackText').className = 'font-bold text-sm text-green-600';
+                document.getElementById('quizFeedbackText').innerText = '✅ Jawabanmu Benar!';
+                state.quizScore += 10;
+            } else {
+                playSound('repel');
+                btnEl.className = 'p-4 bg-red-100 border-2 border-red-500 rounded-2xl text-left font-bold text-red-900 text-sm transition flex items-center space-x-3';
+                allBtns[q.correct].className = 'p-4 bg-green-100 border-2 border-green-500 rounded-2xl text-left font-bold text-green-900 text-sm transition flex items-center space-x-3';
+                document.getElementById('quizFeedbackText').className = 'font-bold text-sm text-red-600';
+                document.getElementById('quizFeedbackText').innerText = '❌ Jawabanmu Belum Tepat!';
+            }
+
+            document.getElementById('quizNextBtn').classList.remove('hidden');
+        }
+
+        function nextQuizQuestion() {
+            playSound('click');
+            currentQuizIdx++;
+            if (currentQuizIdx < quizQuestions.length) {
+                loadQuizQuestion();
+            } else {
+                state.quizFinished = true;
+                showQuizResults();
+            }
+            updateOverallProgress();
+        }
+
+        function showQuizResults() {
+            confetti({ particleCount: 100, spread: 70 });
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = `
+                <div class="text-center py-8 space-y-4">
+                    <span class="text-6xl">🏆</span>
+                    <h3 class="font-kids text-3xl font-bold text-slate-800">Kuis Selesai!</h3>
+                    <p class="text-slate-600 text-sm">Nilai Akhir Kuis Kamu:</p>
+                    <div class="font-kids text-6xl font-bold text-brand-blue">${state.quizScore} / 100</div>
+                    <button onclick="switchTab('hasil-belajar')" class="px-8 py-3 bg-brand-yellow text-slate-900 font-kids text-lg font-bold rounded-2xl shadow hover:bg-yellow-400 transition">
+                        📜 Lihat Rapor Belajar
+                    </button>
+                </div>
+            `;
+            updateReportCard();
+        }
+
+        /* PROGRESS TRACKER & REPORT CARD */
+        function updateOverallProgress() {
+            let totalMissions = 5;
+            let completed = 0;
+
+            // Mission 1: Materi read count
+            const readMateriCount = state.materiProgress.filter(Boolean).length;
+            if (readMateriCount >= 3) completed += 1;
+
+            // Mission 2: Tested objects
+            if (state.testedObjectsCount >= 3) completed += 1;
+
+            // Mission 3: Poles simulation
+            if (state.hasSimulatedPoles) completed += 1;
+
+            // Mission 4: Virtual lab
+            if (state.hasSimulatedLab) completed += 1;
+
+            // Mission 5: Quiz completed
+            if (state.quizFinished) completed += 1;
+
+            const percentage = Math.round((completed / totalMissions) * 100);
+            document.getElementById('overallProgressBar').style.width = `${percentage}%`;
+            document.getElementById('overallProgressText').innerText = `${percentage}%`;
+
+            // Badges unlocking logic
+            if (readMateriCount >= 3) {
+                document.getElementById('badge-1').classList.remove('opacity-30', 'grayscale');
+                document.getElementById('repBadge1').classList.remove('opacity-30', 'grayscale');
+            }
+            if (state.hasSimulatedLab) {
+                document.getElementById('badge-2').classList.remove('opacity-30', 'grayscale');
+                document.getElementById('repBadge2').classList.remove('opacity-30', 'grayscale');
+            }
+            if (state.quizFinished && state.quizScore >= 70) {
+                document.getElementById('badge-3').classList.remove('opacity-30', 'grayscale');
+                document.getElementById('repBadge3').classList.remove('opacity-30', 'grayscale');
+            }
+
+            updateReportCard();
+        }
+
+        function updateReportCard() {
+            document.getElementById('reportQuizScore').innerText = `${state.quizScore} / 100`;
+
+            let category = "Petualang Pemula";
+            if (state.quizScore >= 80) category = "🌟 Master Magnet (Sangat Baik)";
+            else if (state.quizScore >= 60) category = "👍 Penyelidik Cilik (Baik)";
+
+            document.getElementById('reportCategory').innerText = category;
+        }
+
+        function resetAllProgress() {
+            if (confirm("Apakah kamu yakin ingin meriset semua kemajuan belajar?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        /* INITIALIZATION ON WINDOW LOAD */
+        window.onload = function() {
+            // Restore profile if saved
+            const savedProfile = localStorage.getItem('petualangan_magnet_profile');
+            if (savedProfile) {
+                const p = JSON.parse(savedProfile);
+                state.studentName = p.nama;
+                state.studentClass = p.kelas;
+                document.getElementById('inputNama').value = p.nama;
+                document.getElementById('inputKelas').value = p.kelas;
+                updateProfileUI();
+            }
+
+            initObjectBasket();
+            loadQuizQuestion();
+            updateOverallProgress();
+        };
+    </script>
+</body>
+</html>
